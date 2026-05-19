@@ -23,12 +23,13 @@ import type {
   VerifyResult,
 } from './types.js';
 
-// Default points at the branded RealStamp API host. Endpoints are exposed under
-// /functions/v1/* via a Cloudflare Pages reverse-proxy; network traces only ever
-// show realstamp.app, never upstream infrastructure.
-const DEFAULT_BASE_URL = 'https://realstamp.app';
-// 30 seconds — generous enough to absorb a Supabase Edge cold start through the
-// edge proxy without surfacing as `request_timeout`. Stable Node servers can tighten.
+// Current default points at the Supabase project that serves the RealStamp Edge
+// Functions. A Cloudflare Pages reverse-proxy at https://realstamp.app/functions/v1/*
+// is ready to take over in v0.2; the default will shift then. Override with
+// `new RealStampClient({ baseUrl })` if your environment requires a specific host.
+const DEFAULT_BASE_URL = 'https://hldoychlnejsmxvuxsri.supabase.co';
+// 30 seconds — generous enough to absorb a Supabase Edge cold start without
+// surfacing as `request_timeout`. Stable Node servers can tighten.
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 export type VerifyInput =

@@ -25,7 +25,7 @@ Before installing, you can confirm a credential is verifiable with a single `cur
 
 ```bash
 curl -sX POST \
-  https://realstamp.app/functions/v1/api-verify \
+  https://hldoychlnejsmxvuxsri.supabase.co/functions/v1/api-verify \
   -H 'content-type: application/json' \
   -d '{"shareLinkId":"abc123def456"}'
 ```
@@ -86,7 +86,7 @@ Rule of thumb: render trust UI off of `valid`. Inspect `cryptoVerified` only whe
 
 ```ts
 const client = new RealStampClient({
-  baseUrl: 'https://realstamp.app',       // see the API host note below
+  baseUrl: 'https://hldoychlnejsmxvuxsri.supabase.co', // see the API host note below
   apiKey: process.env.REALSTAMP_API_KEY,  // optional, for API-key auth
   timeoutMs: 30_000,                      // per-request timeout (default 30s)
   fetch: customFetch,                     // optional custom fetch
@@ -98,7 +98,13 @@ All methods accept an optional `signal: AbortSignal` for cancellation.
 
 ### API host
 
-The SDK ships pointing at the canonical RealStamp API host (`https://realstamp.app`). Endpoints are served under `/functions/v1/*` and proxied at the edge — your network traces will only ever show `realstamp.app`, no upstream infrastructure. If your environment requires an allowlist of egress destinations, allowlist `realstamp.app` and you're done.
+`v0.1.x` ships pointing at the Supabase project that serves the RealStamp Edge Functions. A Cloudflare Pages reverse-proxy at `https://realstamp.app/functions/v1/*` is in place and will become the default in `v0.2`. If your environment requires a branded allowlist now, override the default explicitly:
+
+```ts
+const client = new RealStampClient({ baseUrl: 'https://realstamp.app' });
+```
+
+After `v0.2`, both URLs continue to work — only the default flips.
 
 The `timeoutMs` default is `30_000` (30 seconds) — generous enough to absorb a Supabase Edge cold start on a Cloudflare Worker without surfacing as `request_timeout`. Tighten it if you're calling from a Node server with stable connectivity.
 

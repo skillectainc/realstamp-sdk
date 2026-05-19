@@ -8,18 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ### Changed
 
-- **Default `baseUrl` is now `https://realstamp.app`** (was the bare Supabase project URL). Endpoints are served under `/functions/v1/*` via a Cloudflare Pages reverse-proxy — network traces and procurement allowlists now only need to mention `realstamp.app`. No upstream infrastructure is leaked.
 - **Default `timeoutMs` raised from 10s → 30s.** Generous enough to absorb a Supabase Edge cold start through the edge proxy without surfacing as `request_timeout`. Stable Node servers can tighten by passing `{ timeoutMs: 5000 }` to the constructor.
 - **`fetch` is now resolved lazily at call time** instead of being captured at constructor time. Next.js (and other frameworks) patch `globalThis.fetch` at runtime for caching/revalidation; capturing eagerly held a stale reference. Explicit `opts.fetch` is still respected when provided.
 - README significantly expanded: 60-second cURL smoke-test, rate-limit + credentials section, `cryptoVerified` vs `valid` rule of thumb, error-handling worked example.
+- Repo polish: SECURITY.md (private disclosure channel), CONTRIBUTING.md (no-runtime-deps stance, branch + PR rules), `.github/ISSUE_TEMPLATE/bug_report.yml` (structured bug intake) + `config.yml` (route security to private, route API key requests to security@realstamp.app).
+- Removed "indemnification" language from the open-core section (hostage to E&O insurance before we have it).
 
 ### Fixed
 
-- README claimed the default `baseUrl` was `realstamp.app` while the binary defaulted to the bare Supabase URL. Now they agree.
+- README claimed the default `baseUrl` was `realstamp.app` while the binary defaulted to the bare Supabase URL. Both now consistently document the Supabase default, with the `realstamp.app/functions/v1/*` branded URL flagged as the upcoming `v0.2` default once the edge proxy fully propagates.
 
 ### Notes
 
-- No code-level API changes — all of v0.1.0's exports work identically. Patch-bump per semver.
+- No source API changes — all v0.1.0 exports work identically. Patch-bump per semver.
+- The Cloudflare Pages reverse-proxy at `https://realstamp.app/functions/v1/*` is shipped in the main realstamp repo; once it's live in production, `v0.2` will flip the SDK's default `baseUrl` to use it. Both URLs continue to work in parallel.
 
 ## [0.1.0] — 2026-05-19
 
