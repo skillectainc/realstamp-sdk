@@ -1,0 +1,15 @@
+src/
+test/
+examples/
+.github/
+*.log
+.DS_Store
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+.gitignore
+.env*
+*.tsbuildinfo
+coverage/
+.turbo/
+.cache/
