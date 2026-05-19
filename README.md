@@ -19,6 +19,19 @@ npm install @realstamp/verify
 
 Requires Node 20+, modern browsers, Deno, Bun, or Cloudflare Workers. Zero runtime dependencies.
 
+## 60-second smoke test (no install required)
+
+Before installing, you can confirm a credential is verifiable with a single `curl`:
+
+```bash
+curl -sX POST \
+  https://realstamp.app/functions/v1/api-verify \
+  -H 'content-type: application/json' \
+  -d '{"shareLinkId":"abc123def456"}'
+```
+
+(Replace `abc123def456` with a real 12-character share-link ID from any RealStamp credential.)
+
 ## Quickstart
 
 ```ts
@@ -39,6 +52,17 @@ if (result.valid) {
 ```
 
 That's it. Same call signature works for SD-JWT credentials (`{ sdJwt }`), short share links (`{ shareLinkId }`), or legacy tokens (`{ pulseToken }`). The discriminated `verificationMethod` field tells you which path resolved.
+
+### A note about `cryptoVerified` vs `valid`
+
+The two flags answer different questions:
+
+- **`valid`** — *should you trust this credential?* `true` only when the credential is both signature-valid AND not revoked.
+- **`cryptoVerified`** — *did the cryptographic signature math check out, regardless of revocation state?*
+
+For SD-JWT verification (`{ sdJwt }`), the SDK verifies the ES256 signature against the published JWKS, so `cryptoVerified` reflects the real outcome of that math. For share-link and legacy-token verification (`{ shareLinkId }` / `{ pulseToken }`), the SDK does a database lookup (the original SD-JWT is not sent over the wire), so `cryptoVerified` is always `false` even on active credentials. The DB lookup is still cryptographically anchored to the published revocation list, so `valid` remains the verdict you build UI on.
+
+Rule of thumb: render trust UI off of `valid`. Inspect `cryptoVerified` only when you need to distinguish offline-verifiable credentials from server-attested ones.
 
 ---
 
@@ -62,15 +86,42 @@ That's it. Same call signature works for SD-JWT credentials (`{ sdJwt }`), short
 
 ```ts
 const client = new RealStampClient({
-  baseUrl: 'https://realstamp.app',   // default
-  apiKey: process.env.REALSTAMP_API_KEY, // optional, for API-key auth
-  timeoutMs: 10_000,                     // per-request timeout
-  fetch: customFetch,                    // optional custom fetch
-  headers: { 'X-Tenant-Id': 'reuters' }, // optional default headers
+  baseUrl: 'https://realstamp.app',       // see the API host note below
+  apiKey: process.env.REALSTAMP_API_KEY,  // optional, for API-key auth
+  timeoutMs: 30_000,                      // per-request timeout (default 30s)
+  fetch: customFetch,                     // optional custom fetch
+  headers: { 'X-Tenant-Id': 'reuters' },  // optional default headers
 });
 ```
 
 All methods accept an optional `signal: AbortSignal` for cancellation.
+
+### API host
+
+The SDK ships pointing at the canonical RealStamp API host (`https://realstamp.app`). Endpoints are served under `/functions/v1/*` and proxied at the edge — your network traces will only ever show `realstamp.app`, no upstream infrastructure. If your environment requires an allowlist of egress destinations, allowlist `realstamp.app` and you're done.
+
+The `timeoutMs` default is `30_000` (30 seconds) — generous enough to absorb a Supabase Edge cold start on a Cloudflare Worker without surfacing as `request_timeout`. Tighten it if you're calling from a Node server with stable connectivity.
+
+## Rate limits + credentials
+
+Anonymous calls (no `apiKey`, no `accessToken`) are rate-limited at **60 requests per minute per IP** for verify endpoints. Anonymous integration is fine for low-volume verification (a single article page, a single Substack badge), but production-scale embedding needs an API key.
+
+On a 429 you'll get a typed `RealStampError` with `code: 'rate_limited'` and a `retry_after_seconds` field on `err.payload`:
+
+```ts
+import { isRealStampError } from '@realstamp/verify';
+try {
+  await client.verifyStamp({ shareLinkId });
+} catch (err) {
+  if (isRealStampError(err) && err.code === 'rate_limited') {
+    const retryAfter = (err.payload as { retry_after_seconds?: number })?.retry_after_seconds ?? 60;
+    await new Promise(r => setTimeout(r, retryAfter * 1000));
+    // retry
+  }
+}
+```
+
+To request an API key (`rs_live_*` format) for higher-volume verify + listing endpoints, or an access token for webhook subscriptions, email **security@realstamp.app**. Self-serve key issuance is on the roadmap.
 
 ---
 
@@ -204,7 +255,7 @@ For verifiers who want to verify SD-JWT credentials entirely offline (no calls t
 
 ## Open standard, commercial cloud
 
-This SDK is Apache-2.0. The verification protocol, the JWKS rotation tooling, and the reference verifier are open and stable. RealStamp's commercial product is the hosted signing infrastructure, the revocation broadcast service, and enterprise-grade SLA + indemnification — sold to platforms that integrate this SDK and need a backed counterparty.
+This SDK is Apache-2.0. The verification protocol, the JWKS rotation tooling, and the reference verifier are open and stable. RealStamp's commercial product is the hosted signing infrastructure, the revocation broadcast service, and enterprise SLAs — sold to platforms that integrate this SDK and need a backed counterparty.
 
 Source: <https://github.com/emiliacarp/realstamp-sdk>
 Issues: <https://github.com/emiliacarp/realstamp-sdk/issues>

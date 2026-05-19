@@ -1,0 +1,59 @@
+name: Bug report
+description: Something the SDK does wrong, or returns the wrong type for.
+title: "[bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. **Security issues should NOT use this template** — see [SECURITY.md](https://github.com/emiliacarp/realstamp-sdk/blob/main/SECURITY.md) for the private channel.
+
+  - type: input
+    id: sdk-version
+    attributes:
+      label: SDK version
+      description: Output of `npm ls @realstamp/verify` in your project
+      placeholder: "@realstamp/verify@0.1.1"
+    validations:
+      required: true
+
+  - type: input
+    id: runtime
+    attributes:
+      label: Runtime + version
+      description: Node 20.x / Bun / Cloudflare Workers / Browser + version
+      placeholder: "Node 20.18.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: |
+        The 5–15 lines of TypeScript or JavaScript that demonstrate the issue.
+        Please paste the actual code, not a description.
+      render: typescript
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened?
+      description: Stack trace, error code, or unexpected response shape
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Anything else relevant?
+      description: Network conditions, custom fetch, edge runtime quirks, etc.

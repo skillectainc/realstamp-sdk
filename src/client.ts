@@ -23,11 +23,13 @@ import type {
   VerifyResult,
 } from './types.js';
 
-// Default points at the Supabase project that serves the RealStamp Edge Functions.
-// Once api.realstamp.app is configured as a clean branded host, this default
-// will shift in a future release. Override with `new RealStampClient({ baseUrl })`.
-const DEFAULT_BASE_URL = 'https://hldoychlnejsmxvuxsri.supabase.co';
-const DEFAULT_TIMEOUT_MS = 10_000;
+// Default points at the branded RealStamp API host. Endpoints are exposed under
+// /functions/v1/* via a Cloudflare Pages reverse-proxy; network traces only ever
+// show realstamp.app, never upstream infrastructure.
+const DEFAULT_BASE_URL = 'https://realstamp.app';
+// 30 seconds — generous enough to absorb a Supabase Edge cold start through the
+// edge proxy without surfacing as `request_timeout`. Stable Node servers can tighten.
+const DEFAULT_TIMEOUT_MS = 30_000;
 
 export type VerifyInput =
   | { sdJwt: string }
@@ -36,7 +38,7 @@ export type VerifyInput =
 
 export class RealStampClient {
   private readonly baseUrl: string;
-  private readonly fetcher: typeof fetch;
+  private readonly customFetch?: typeof fetch;
   private readonly defaultApiKey?: string;
   private readonly defaultAccessToken?: string;
   private readonly defaultTimeoutMs: number;
@@ -44,18 +46,28 @@ export class RealStampClient {
 
   constructor(opts: ClientOptions = {}) {
     this.baseUrl = (opts.baseUrl ?? DEFAULT_BASE_URL).replace(/\/$/, '');
-    const f = opts.fetch ?? globalThis.fetch;
-    if (!f) {
-      throw new Error(
-        '@realstamp/verify: globalThis.fetch is not available. Pass `opts.fetch` ' +
-          'when constructing the client on environments without native fetch.',
-      );
-    }
-    this.fetcher = f;
+    // Capture an explicit fetch override, but do NOT capture globalThis.fetch
+    // at construction — Next.js (and other frameworks) patch globalThis.fetch
+    // at runtime for caching/revalidation. Resolving lazily at call time keeps
+    // us aligned with whatever the host environment currently considers fetch.
+    if (opts.fetch) this.customFetch = opts.fetch;
     if (opts.apiKey) this.defaultApiKey = opts.apiKey;
     if (opts.accessToken) this.defaultAccessToken = opts.accessToken;
     this.defaultTimeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.defaultHeaders = { ...opts.headers };
+  }
+
+  /** Resolve fetch at call time so Next.js and similar fetch-patching frameworks work. */
+  private getFetcher(): typeof fetch {
+    if (this.customFetch) return this.customFetch;
+    const f = globalThis.fetch;
+    if (!f) {
+      throw new Error(
+        '@realstamp/verify: globalThis.fetch is not available at call time. ' +
+          'Pass `opts.fetch` when constructing the client on environments without native fetch.',
+      );
+    }
+    return f;
   }
 
   /**
@@ -229,7 +241,7 @@ export class RealStampClient {
         signal,
       };
       if (opts.body !== undefined) requestInit.body = opts.body;
-      response = await this.fetcher(url, requestInit);
+      response = await this.getFetcher()(url, requestInit);
     } catch (err) {
       const isAbort =
         err instanceof Error &&
