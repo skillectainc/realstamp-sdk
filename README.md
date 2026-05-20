@@ -263,8 +263,8 @@ For verifiers who want to verify SD-JWT credentials entirely offline (no calls t
 
 This SDK is Apache-2.0. The verification protocol, the JWKS rotation tooling, and the reference verifier are open and stable. RealStamp's commercial product is the hosted signing infrastructure, the revocation broadcast service, and enterprise SLAs — sold to platforms that integrate this SDK and need a backed counterparty.
 
-Source: <https://github.com/emiliacarp/realstamp-sdk>
-Issues: <https://github.com/emiliacarp/realstamp-sdk/issues>
+Source: <https://github.com/skillectainc/realstamp-sdk>
+Issues: <https://github.com/skillectainc/realstamp-sdk/issues>
 
 ---
 

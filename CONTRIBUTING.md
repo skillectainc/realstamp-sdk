@@ -20,7 +20,7 @@ Thanks for considering a contribution. This is the official SDK for verifying Re
 ## Local development
 
 ```bash
-git clone https://github.com/emiliacarp/realstamp-sdk.git
+git clone https://github.com/skillectainc/realstamp-sdk.git
 cd realstamp-sdk
 npm install
 npm run typecheck

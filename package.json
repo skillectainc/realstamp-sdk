@@ -1,6 +1,6 @@
 {
   "name": "@realstamp/verify",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Official SDK for verifying RealStamp credentials, querying revocations and impersonation claims, and subscribing to webhook events.",
   "license": "Apache-2.0",
   "type": "module",
@@ -46,10 +46,10 @@
   "homepage": "https://realstamp.app",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/emiliacarp/realstamp-sdk.git"
+    "url": "git+https://github.com/skillectainc/realstamp-sdk.git"
   },
   "bugs": {
-    "url": "https://github.com/emiliacarp/realstamp-sdk/issues"
+    "url": "https://github.com/skillectainc/realstamp-sdk/issues"
   },
   "author": {
     "name": "Skillecta Inc.",

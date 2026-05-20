@@ -17,7 +17,7 @@
  *
  *   import { verifyWebhookSignature, parseWebhookPayload } from '@realstamp/verify/webhooks';
  *
- * Source: https://github.com/emiliacarp/realstamp-sdk
+ * Source: https://github.com/skillectainc/realstamp-sdk
  * Docs:   https://realstamp.app/docs/revocations-api
  * Apache-2.0
  */

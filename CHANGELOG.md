@@ -4,6 +4,12 @@ All notable changes to `@realstamp/verify` are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] — 2026-05-19
+
+### Changed
+
+- Repository moved from `github.com/emiliacarp/realstamp-sdk` to `github.com/skillectainc/realstamp-sdk` (GitHub username changed to match the legal entity, Skillecta Inc.). Old URLs continue to redirect via GitHub. No source, API, or behavior changes — metadata-only patch bump so `npm` surfaces the canonical repository URL.
+
 ## [0.1.1] — 2026-05-19
 
 ### Changed
